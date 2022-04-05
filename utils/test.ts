@@ -181,27 +181,81 @@ function updateBigRoad(rawDatas: Array<IRawData>) {
 }
 // #endregion BigRoad
 
-// #region BigEyeRoad
+// #region EyeRoad
 function updateBigEyeRoad(bigBoard: Array<Array<IBigRoadData>>, bigData: Array<IColDatas<IBigRoadData>>) {
+    updateEyeRoad(bigBoard, bigData, true)
+}
+
+function updateSmallEyeRoad(bigBoard: Array<Array<IBigRoadData>>, bigData: Array<IColDatas<IBigRoadData>>) {
+    updateEyeRoad(bigBoard, bigData, false)
+}
+
+function checkPreviousLineEqual(bigData: Array<IColDatas<IBigRoadData>>, colIndex: number, previousCounterOne: number, previousCounterTwo: number) {
+    if (colIndex < Math.max(previousCounterOne, previousCounterTwo)) {
+        return false
+    } else {
+        return bigData[colIndex - previousCounterOne].colDatas.length == bigData[colIndex - previousCounterTwo].colDatas.length
+    }
+}
+function checkPreviousDotExist(bigData: Array<IColDatas<IBigRoadData>>, colIndex: number, rowIndex: number, previousCount: number) {
+    if (colIndex < previousCount) {
+        return false
+    } else {
+        return bigData[colIndex - previousCount].colDatas.length > rowIndex
+    }
+}
+
+function checkStraightFall(bigData: Array<IColDatas<IBigRoadData>>, colIndex: number, rowIndex: number, previousCount: number) {
+    if (colIndex < previousCount) {
+        return false
+    } else {
+        return rowIndex >= bigData[colIndex - previousCount].colDatas.length + 1
+    }
+}
+
+function updateEyeRoad(bigBoard: Array<Array<IBigRoadData>>, bigData: Array<IColDatas<IBigRoadData>>, isBig: boolean) {
     let startColIndex: number = 1
     let startRowIndex: number = 1
 
-    // check 2 - 2
-    if (bigBoard[1][1] == null) {
-        // check 3 - 1
-        if (bigBoard[2][0] == null) {
-            // empty, no data
-            return
+    let previousCounterOne: number = 1
+    let previousCounterTwo: number = isBig ? 2 : 3
+    let previousCounter: number = isBig ? 1 : 2
+
+    if (isBig) {
+        // big check 2-2 and 3-1
+        // check 2 - 2
+        if (bigBoard[1][1] == null) {
+            // check 3 - 1
+            if (bigBoard[2][0] == null) {
+                // empty, no data
+                return
+            } else {
+                startColIndex = 2;
+                startRowIndex = 0;
+            }
         } else {
-            startColIndex = 2;
-            startRowIndex = 0;
+            startColIndex = 1;
+            startRowIndex = 1;
         }
     } else {
-        startColIndex = 1;
-        startRowIndex = 1;
+        // small check 3-2 and 4-1
+        // check 3 - 2
+        if (bigBoard[2][1] == null) {
+            // check 4 - 1
+            if (bigBoard[3][0] == null) {
+                // empty, no data
+                return
+            } else {
+                startColIndex = 3;
+                startRowIndex = 0;
+            }
+        } else {
+            startColIndex = 2;
+            startRowIndex = 1;
+        }
     }
 
-    const bigEyeColDatas: Array<IColDatas<EResultType>> = []
+    const eyeColDatas: Array<IColDatas<EResultType>> = []
     // gen big eye road datas
     let previousType: EResultType = EResultType.Draw // used as empty
     bigData.forEach(({ colDatas }, colIndex: number) => {
@@ -211,57 +265,37 @@ function updateBigEyeRoad(bigBoard: Array<Array<IBigRoadData>>, bigData: Array<I
             } else {
                 let type = null
                 if (rowIndex == 0) {
-                    let isPreviousLineEqual = checkPreviousLineEqual(bigData, colIndex)
+                    let isPreviousLineEqual = checkPreviousLineEqual(bigData, colIndex, previousCounterOne, previousCounterTwo)
                     type = isPreviousLineEqual ? EResultType.Banker : EResultType.Player
                 } else {
-                    let isPreviousDotExist = checkPreviousDotExist(bigData, colIndex, rowIndex)
-                    let isStraightFall = checkStraightFall(bigData, colIndex, rowIndex)
+                    let isPreviousDotExist = checkPreviousDotExist(bigData, colIndex, rowIndex, previousCounter)
+                    let isStraightFall = checkStraightFall(bigData, colIndex, rowIndex, previousCounter)
                     type = isStraightFall ? EResultType.Banker : isPreviousDotExist ? EResultType.Banker : EResultType.Player
                 }
                 
                 if (type != previousType) {
-                    bigEyeColDatas.push({ colDatas: [] })
+                    eyeColDatas.push({ colDatas: [] })
                     previousType = type
                 }
-                bigEyeColDatas[bigEyeColDatas.length - 1].colDatas.push(type)
+                eyeColDatas[eyeColDatas.length - 1].colDatas.push(type)
             }
         })
     })
 
-    console.log("updateBigEyeRoad: bigEyeColDatas ==>", bigEyeColDatas)
-    results[ERoadType.BigEye].data = bigEyeColDatas
+    console.log("updateBigEyeRoad: eyeColDatas ==>", eyeColDatas)
+    const result = isBig ? results[ERoadType.BigEye] : results[ERoadType.SmallEye]
+    result.data = eyeColDatas
 
     // draw bigRoad
-    const board = results[ERoadType.BigEye].board
-    const config = configs[ERoadType.BigEye]
+    const board = isBig ? results[ERoadType.BigEye].board : results[ERoadType.SmallEye].board
+    const config = isBig ? configs[ERoadType.BigEye] : configs[ERoadType.SmallEye]
     
-    updateBoard<EResultType>(board, bigEyeColDatas, config)
+    updateBoard<EResultType>(board, eyeColDatas, config)
 }
 
-function checkPreviousLineEqual(bigData: Array<IColDatas<IBigRoadData>>, colIndex: number) {
-    if (colIndex < 2) {
-        return false
-    } else {
-        return bigData[colIndex - 1].colDatas.length == bigData[colIndex - 2].colDatas.length
-    }
-}
-function checkPreviousDotExist(bigData: Array<IColDatas<IBigRoadData>>, colIndex: number, rowIndex: number) {
-    if (colIndex < 1) {
-        return false
-    } else {
-        return bigData[colIndex - 1].colDatas.length > rowIndex
-    }
-}
+// #endregion EyeRoad
 
-function checkStraightFall(bigData: Array<IColDatas<IBigRoadData>>, colIndex: number, rowIndex: number) {
-    if (colIndex < 1) {
-        return false
-    } else {
-        return rowIndex >= bigData[colIndex - 1].colDatas.length + 1
-    }
-}
 
-// #endregion BigEyeRoad
 
 // #region basic 
 function init() {
@@ -286,10 +320,10 @@ function printResult() {
     printBoard(results[ERoadType.Big].board, results[ERoadType.Big].data, ERoadType.Big)
 
     printBoard(results[ERoadType.BigEye].board, results[ERoadType.BigEye].data, ERoadType.BigEye)
-    // printBoard(results[ERoadType.SmallEye].board, configs[ERoadType.SmallEye], ERoadType[ERoadType.SmallEye])
-    // printBoard(results[ERoadType.Cockroach].board, configs[ERoadType.Cockroach], ERoadType[ERoadType.Cockroach])
+    printBoard(results[ERoadType.SmallEye].board, results[ERoadType.SmallEye].data, ERoadType.SmallEye)
+    // printBoard(results[ERoadType.Cockroach].board, results[ERoadType.Cockroach].data, ERoadType.Cockroach)
     
-    // printBoard(results[ERoadType.Dish].board, configs[ERoadType.Dish], ERoadType[ERoadType.Dish])
+    // printBoard(results[ERoadType.Dish].board, results[ERoadType.Dish].data, ERoadType.Dish)
 }
 
 function printBoard (board: Array<Array<any>>, data: any, type: ERoadType) {
@@ -312,13 +346,14 @@ function convertDataToSymbol(data: any, type: ERoadType): string {
     switch (type) {
         case ERoadType.Big: {
             let symbol = ""
-                // + (isBankerPair ? bigRoadSymbol.bankerPair : '')
+                // + (data.isBankerPair ? bigRoadSymbol.bankerPair : '')
                 + (data.resultType == EResultType.Banker ? bigRoadSymbol.banker : data.resultType == EResultType.Player ? bigRoadSymbol.player : data.resultType == EResultType.Draw ? bigRoadSymbol.draw : '')
                 + (data.resultType != EResultType.Draw && data.drawCounter > 0 ? bigRoadSymbol.draw : '')
-                // + (isPlayerPair ? bigRoadSymbol.playerPair : '');
+                // + (data.isPlayerPair ? bigRoadSymbol.playerPair : '');
             symbol = symbol.replace("%s", `${data.drawCounter}`)
             return symbol 
         }
+        case ERoadType.SmallEye:
         case ERoadType.BigEye: {
             let symbol = data as EResultType == EResultType.Banker ? "R" : "B"
             return symbol
@@ -331,11 +366,11 @@ function convertDataToSymbol(data: any, type: ERoadType): string {
 export function test() {
     init()
 
-    let fakeData = genFakeResult(5)
+    let fakeData = genFakeResult(20)
     console.log("Fake Data ==> ", fakeData)
     updateBigRoad(fakeData)
     updateBigEyeRoad(results[ERoadType.Big].board, results[ERoadType.Big].data)
-
+    updateSmallEyeRoad(results[ERoadType.Big].board, results[ERoadType.Big].data)
     printResult()
 }
 // #endregion basic 
