@@ -61,6 +61,53 @@ function genFakeResult(count: number): Array<IRawData> {
     return arr
 }
 // #endregion raw data
+// #region RoadUtils
+
+function updateBoard<T>(board: Array<Array<T>>, colDataArr: Array<IColDatas<T>>, config: IRoadConfig) {
+    const colLimit = config.column
+    const rowLimit = config.row
+    let colStarterIndex = -1;
+    let colIndex = -1;
+    let rowIndex = -1
+
+    colDataArr.forEach((colDatas: IColDatas<T>) => {
+        // move to next line
+        colStarterIndex++
+        colIndex = colStarterIndex;
+        rowIndex = -1
+
+        colDatas.colDatas.forEach((data: T) => {
+            // move index
+            let isNotOverLimit = colIndex < colLimit && rowIndex < rowLimit
+            if (!isNotOverLimit) {
+                // over limit pass
+                return
+            } else if (rowIndex + 1 < rowLimit) {
+                let isBlocked = board[colIndex][rowIndex + 1] != null
+                if (isBlocked) {
+                    // move right
+                    colIndex++;
+                    if (rowIndex == 0) {
+                        colStarterIndex++
+                    }
+                } else {
+                    // move down
+                    rowIndex++;
+                }
+            } else {
+                // move right            
+                colIndex++;
+            }
+
+            // update board
+            board[colIndex][rowIndex] = data
+        })
+    })
+}
+
+
+// #endregion RoadUtils
+
 // #region BigRoad
 // for data test only
 const bigRoadSymbol = {
@@ -75,16 +122,14 @@ const bigRoadSymbol = {
 
 function updateBigRoad(rawDatas: Array<IRawData>) {
     const board = results[ERoadType.Big].board
-    const rowLimit = configs[ERoadType.Big].row
-    const colLimit = configs[ERoadType.Big].column
-
+    const config = configs[ERoadType.Big]
     let tempBigRoadDatas: Array<IBigRoadData> = [] 
-    let bigRoadCounter = -1
     
+    let bigRoadCounter = -1
     let previousType: EResultType = EResultType.None
     let bigRowColDatas: Array<IColDatas<IBigRoadData>> = []
     
-    // gen big road datas
+    // gen big road datas and update
     rawDatas.forEach(({resultType, isBankerPair, isPlayerPair}) => {
         if (resultType == EResultType.Banker || resultType == EResultType.Player) {
             if (bigRoadCounter != -1 && tempBigRoadDatas[bigRoadCounter].resultType == EResultType.Draw) {
@@ -121,101 +166,17 @@ function updateBigRoad(rawDatas: Array<IRawData>) {
 
     tempBigRoadDatas.forEach((data: IBigRoadData, index) => {
         if (previousType != data.resultType) {
+            previousType = data.resultType
             bigRowColDatas.push({ colDatas: [] })
         }
         bigRowColDatas[bigRowColDatas.length - 1].colDatas.push(data)
     })
 
     console.log("updateBigRoad: bigRowColDatas ==>", bigRowColDatas)
-    
-    // draw bigRoad
-    let colIndex = -1;
-    let rowIndex = 0;
-    
-    // bigRoadDatas.forEach(({resultType, drawCounter, isBankerPair, isPlayerPair}, index) => {
-    //     // move index
-    //     let isMovingToNextLine: boolean = false
-    //     if (index == 0) {
-    //         // move to next line
-    //         colStarterIndex++;
-    //         colIndex++;
-    //         rowIndex = 0
-    //         isMovingToNextLine = true
-    //     } else {
-    //         let preData = bigRoadDatas[index - 1]
-    //         let isSameType = resultType == preData.resultType
-    //         if (isSameType) {
-    //             let isNotOverLimit = colIndex < colLimit && rowIndex < rowLimit
-    //             if (!isNotOverLimit) {
-    //                 // over limit pass
-    //                 return
-    //             } else if (rowIndex + 1 < rowLimit) {
-    //                 let isBlocked = board[colIndex][rowIndex + 1] != null
-    //                 if (isBlocked) {
-    //                     // move right
-    //                     colIndex++;
-    //                 } else {
-    //                     // move down
-    //                     rowIndex++;
-    //                 }
-    //             } else {
-    //                 // move right            
-    //                 colIndex++;
-    //             }
-    //         } else {
-    //             // move to next line
-    //             colStarterIndex++;
-    //             colIndex = colStarterIndex;
-    //             rowIndex = 0
-    //             isMovingToNextLine = true
-    //         }
-    //     }
+    results[ERoadType.Big].data = bigRowColDatas
 
-    //     if (isMovingToNextLine) {
-    //         bigRowColDatas.push({ colDatas: [] })
-    //     }
-
-    //     // set data
-    //     bigRowColDatas[colStarterIndex].colDatas.push(bigRoadDatas[index])
-        
-    //     let isNotOverLimit = colIndex < colLimit && rowIndex < rowLimit
-    //     if (isNotOverLimit) {
-    //         board[colIndex][rowIndex] = bigRoadDatas[index]
-    //     } else {
-    //         console.error("error: updateBigRoad: overlimit", colIndex, rowIndex, bigRoadDatas)
-    //     }
-    // })
-
-    bigRowColDatas.forEach((BigColDatas: IColDatas<IBigRoadData>, colStarterIndex: number) => {
-        // move to next line
-        colIndex = colStarterIndex;
-        rowIndex = -1
-
-        BigColDatas.colDatas.forEach((data: IBigRoadData) => {
-            // move index
-            let isNotOverLimit = colIndex < colLimit && rowIndex < rowLimit
-            if (!isNotOverLimit) {
-                // over limit pass
-                return
-            } else if (rowIndex + 1 < rowLimit) {
-                let isBlocked = board[colIndex][rowIndex + 1] != null
-                if (isBlocked) {
-                    // move right
-                    colIndex++;
-                } else {
-                    // move down
-                    rowIndex++;
-                }
-            } else {
-                // move right            
-                colIndex++;
-            }
-
-
-            // update board
-            board[colIndex][rowIndex] = data
-        })
-    })
+    // update board
+    updateBoard<IBigRoadData>(board, bigRowColDatas, config)
     results[ERoadType.Big].data = bigRowColDatas
 }
 // #endregion BigRoad
@@ -241,7 +202,6 @@ function updateBigEyeRoad(bigBoard: Array<Array<IBigRoadData>>, bigData: Array<I
     }
 
     const bigEyeColDatas: Array<IColDatas<EResultType>> = []
-    // start calculate
     // gen big eye road datas
     let previousType: EResultType = EResultType.Draw // used as empty
     bigData.forEach(({ colDatas }, colIndex: number) => {
@@ -268,45 +228,14 @@ function updateBigEyeRoad(bigBoard: Array<Array<IBigRoadData>>, bigData: Array<I
         })
     })
 
+    console.log("updateBigEyeRoad: bigEyeColDatas ==>", bigEyeColDatas)
+    results[ERoadType.BigEye].data = bigEyeColDatas
+
     // draw bigRoad
     const board = results[ERoadType.BigEye].board
-    const rowLimit = configs[ERoadType.BigEye].row
-    const colLimit = configs[ERoadType.BigEye].column
-    let colIndex = -1;
-    let rowIndex = 0;
-    let colStarterIndex = -1;
-    bigEyeColDatas.forEach((EyeColDatas: IColDatas<EResultType>, i) => {
-        // move to next line
-        colStarterIndex++;
-        colIndex = colStarterIndex;
-        rowIndex = -1
-
-        EyeColDatas.colDatas.forEach((data: EResultType, j) => {
-            // move index
-            let isNotOverLimit = colIndex < colLimit && rowIndex < rowLimit
-            if (!isNotOverLimit) {
-                // over limit pass
-                return
-            } else if (rowIndex + 1 < rowLimit) {
-                let isBlocked = board[colIndex][rowIndex + 1] != null
-                if (isBlocked) {
-                    // move right
-                    colIndex++;
-                } else {
-                    // move down
-                    rowIndex++;
-                }
-            } else {
-                // move right            
-                colIndex++;
-            }
-
-
-            // update board
-            board[colIndex][rowIndex] = data
-        })
-    })
-    results[ERoadType.BigEye].data = bigEyeColDatas
+    const config = configs[ERoadType.BigEye]
+    
+    updateBoard<EResultType>(board, bigEyeColDatas, config)
 }
 
 function checkPreviousLineEqual(bigData: Array<IColDatas<IBigRoadData>>, colIndex: number) {
