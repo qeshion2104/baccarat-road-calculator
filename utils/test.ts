@@ -183,11 +183,15 @@ function updateBigRoad(rawDatas: Array<IRawData>) {
 
 // #region EyeRoad
 function updateBigEyeRoad(bigBoard: Array<Array<IBigRoadData>>, bigData: Array<IColDatas<IBigRoadData>>) {
-    updateEyeRoad(bigBoard, bigData, true)
+    updateEyeRoad(bigBoard, bigData, ERoadType.BigEye)
 }
 
 function updateSmallEyeRoad(bigBoard: Array<Array<IBigRoadData>>, bigData: Array<IColDatas<IBigRoadData>>) {
-    updateEyeRoad(bigBoard, bigData, false)
+    updateEyeRoad(bigBoard, bigData, ERoadType.SmallEye)
+}
+
+function updateCockroachRoad(bigBoard: Array<Array<IBigRoadData>>, bigData: Array<IColDatas<IBigRoadData>>) {
+    updateEyeRoad(bigBoard, bigData, ERoadType.Cockroach)
 }
 
 function checkPreviousLineEqual(bigData: Array<IColDatas<IBigRoadData>>, colIndex: number, previousCounterOne: number, previousCounterTwo: number) {
@@ -213,46 +217,58 @@ function checkStraightFall(bigData: Array<IColDatas<IBigRoadData>>, colIndex: nu
     }
 }
 
-function updateEyeRoad(bigBoard: Array<Array<IBigRoadData>>, bigData: Array<IColDatas<IBigRoadData>>, isBig: boolean) {
+function updateEyeRoad(bigBoard: Array<Array<IBigRoadData>>, bigData: Array<IColDatas<IBigRoadData>>, type: ERoadType) {
     let startColIndex: number = 1
     let startRowIndex: number = 1
 
     let previousCounterOne: number = 1
-    let previousCounterTwo: number = isBig ? 2 : 3
-    let previousCounter: number = isBig ? 1 : 2
+    let previousCounterTwo: number = 2
+    let previousCounter: number = 1
+    let checkIndexs = [[1, 1], [2, 0]]
 
-    if (isBig) {
-        // big check 2-2 and 3-1
-        // check 2 - 2
-        if (bigBoard[1][1] == null) {
-            // check 3 - 1
-            if (bigBoard[2][0] == null) {
-                // empty, no data
-                return
-            } else {
-                startColIndex = 2;
-                startRowIndex = 0;
-            }
+    let result = results[ERoadType.BigEye]
+    let config = configs[ERoadType.BigEye]
+
+    switch(type) {
+        case ERoadType.BigEye:
+            previousCounterOne = 1
+            previousCounterTwo = 2
+            previousCounter = 1
+            checkIndexs = [[1, 1], [2, 0]]
+            result = results[ERoadType.BigEye]
+            config = configs[ERoadType.BigEye]
+            break
+        case ERoadType.SmallEye:
+            previousCounterOne = 1
+            previousCounterTwo = 3
+            previousCounter = 2
+            checkIndexs = [[2, 1], [3, 0]]
+            result = results[ERoadType.SmallEye]
+            config = configs[ERoadType.SmallEye]
+            break
+        case ERoadType.Cockroach:
+            previousCounterOne = 1
+            previousCounterTwo = 4
+            previousCounter = 3
+            checkIndexs = [[3, 1], [4, 0]]
+            result = results[ERoadType.Cockroach]
+            config = configs[ERoadType.Cockroach]
+            break
+    }
+
+    // check first
+    if (bigBoard[checkIndexs[0][0]][checkIndexs[0][1]] == null) {
+        // check second
+        if (bigBoard[checkIndexs[1][0]][checkIndexs[1][1]] == null) {
+            // empty, no data
+            return
         } else {
-            startColIndex = 1;
-            startRowIndex = 1;
+            startColIndex = checkIndexs[1][0];
+            startRowIndex = checkIndexs[1][1];
         }
     } else {
-        // small check 3-2 and 4-1
-        // check 3 - 2
-        if (bigBoard[2][1] == null) {
-            // check 4 - 1
-            if (bigBoard[3][0] == null) {
-                // empty, no data
-                return
-            } else {
-                startColIndex = 3;
-                startRowIndex = 0;
-            }
-        } else {
-            startColIndex = 2;
-            startRowIndex = 1;
-        }
+        startColIndex = checkIndexs[0][0];
+        startRowIndex = checkIndexs[0][1];
     }
 
     const eyeColDatas: Array<IColDatas<EResultType>> = []
@@ -283,14 +299,8 @@ function updateEyeRoad(bigBoard: Array<Array<IBigRoadData>>, bigData: Array<ICol
     })
 
     console.log("updateBigEyeRoad: eyeColDatas ==>", eyeColDatas)
-    const result = isBig ? results[ERoadType.BigEye] : results[ERoadType.SmallEye]
     result.data = eyeColDatas
-
-    // draw bigRoad
-    const board = isBig ? results[ERoadType.BigEye].board : results[ERoadType.SmallEye].board
-    const config = isBig ? configs[ERoadType.BigEye] : configs[ERoadType.SmallEye]
-    
-    updateBoard<EResultType>(board, eyeColDatas, config)
+    updateBoard<EResultType>(result.board, eyeColDatas, config)
 }
 
 // #endregion EyeRoad
@@ -321,7 +331,7 @@ function printResult() {
 
     printBoard(results[ERoadType.BigEye].board, results[ERoadType.BigEye].data, ERoadType.BigEye)
     printBoard(results[ERoadType.SmallEye].board, results[ERoadType.SmallEye].data, ERoadType.SmallEye)
-    // printBoard(results[ERoadType.Cockroach].board, results[ERoadType.Cockroach].data, ERoadType.Cockroach)
+    printBoard(results[ERoadType.Cockroach].board, results[ERoadType.Cockroach].data, ERoadType.Cockroach)
     
     // printBoard(results[ERoadType.Dish].board, results[ERoadType.Dish].data, ERoadType.Dish)
 }
@@ -353,6 +363,7 @@ function convertDataToSymbol(data: any, type: ERoadType): string {
             symbol = symbol.replace("%s", `${data.drawCounter}`)
             return symbol 
         }
+        case ERoadType.Cockroach:
         case ERoadType.SmallEye:
         case ERoadType.BigEye: {
             let symbol = data as EResultType == EResultType.Banker ? "R" : "B"
@@ -371,6 +382,7 @@ export function test() {
     updateBigRoad(fakeData)
     updateBigEyeRoad(results[ERoadType.Big].board, results[ERoadType.Big].data)
     updateSmallEyeRoad(results[ERoadType.Big].board, results[ERoadType.Big].data)
+    updateCockroachRoad(results[ERoadType.Big].board, results[ERoadType.Big].data)
     printResult()
 }
 // #endregion basic 
