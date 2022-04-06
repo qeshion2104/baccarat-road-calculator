@@ -24,7 +24,7 @@ const configs: { [key: number]: IRoadConfig } = {
     },
 }
 
-const results: IRoadMap = {
+export const results: IRoadMap = {
     [ERoadType.Big]: {
         board: [],
         data: []

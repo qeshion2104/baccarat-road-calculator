@@ -4,7 +4,11 @@ module.exports = {
     './components/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      flexBasis: {
+        '30%': '30%',
+      }
+    },
   },
   plugins: [],
 }
