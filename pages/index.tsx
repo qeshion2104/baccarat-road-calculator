@@ -10,21 +10,17 @@ import { test, genFakeResult, genFakeBigRoadResult, results } from '../utils/tes
 import { EResultType, ERoadType, IBigRoadData, IRawData, IRoadMap, IRoadResult } from '../utils/types'
 
 const Home: NextPage = () => {
-  const [rawData, setRawData] = useState<Array<IRawData>>([])
-  const [bigData, setBigData] = useState<Array<IBigRoadData>>([])
   const [roadMap, setRoadMap] = useState<IRoadMap>(results)
   useEffect(() => {
-    test()  
-    setRawData(genFakeResult(10))
-    setBigData(genFakeBigRoadResult(50))
-    setRoadMap(results)
-    console.warn(results)
+    test(50)  
+    // force refresh view by setting new obj
+    setRoadMap(JSON.parse(JSON.stringify(results)))
   }, [])
   return (
     <div>
       <div className='flex flex-col'>
         <BigRoad  bigRoadData={roadMap[ERoadType.Big]}/>
-        <div className='flex flex-row basis-30% justify-between'>
+        <div className='flex flex-row basis-30% justify-start'>
           <EyeRoad eyeRoadData={roadMap[ERoadType.BigEye]} title={"BigEye"}/>
           <EyeRoad eyeRoadData={roadMap[ERoadType.SmallEye]} title={"SmallEye"}/>
           <EyeRoad eyeRoadData={roadMap[ERoadType.Cockroach]} title={"Cockroach"}/>

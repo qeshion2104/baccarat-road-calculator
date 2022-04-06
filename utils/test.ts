@@ -4,7 +4,7 @@ import { EResultType, ERoadType, IColDatas, IBigRoadData, IRawData, IRoadConfig,
 const configs: { [key: number]: IRoadConfig } = {
     [ERoadType.Big]: {
         row: 6,
-        column: 10,
+        column: 32,
     },
     [ERoadType.BigEye]: {
         row: 6,
@@ -20,7 +20,7 @@ const configs: { [key: number]: IRoadConfig } = {
     },
     [ERoadType.Dish]: {
         row: 6,
-        column: 10,
+        column: 20,
     },
 }
 
@@ -427,10 +427,10 @@ function convertDataToSymbol(data: any, type: ERoadType): string {
 }
 
 
-export function test() {
+export function test(count: number = 20) {
     init()
 
-    let fakeData = genFakeResult(20)
+    let fakeData = genFakeResult(count)
     console.log("Fake Data ==> ", fakeData)
     updateBigRoad(fakeData)
     updateBigEyeRoad(results[ERoadType.Big].board, results[ERoadType.Big].data)
