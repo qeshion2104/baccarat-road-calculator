@@ -3,6 +3,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import BigRoad from '../components/BigRoad'
+import DishRoad from '../components/DishRoad'
 import EyeRoad from '../components/EyeRoad'
 import BigRoadIcon from '../components/small/BigRoadIcon'
 import { test, genFakeResult, genFakeBigRoadResult, results } from '../utils/test'
@@ -22,12 +23,13 @@ const Home: NextPage = () => {
   return (
     <div>
       <div className='flex flex-col'>
-        <BigRoad {...roadMap[ERoadType.Big] as IRoadResult<IBigRoadData>}/>
+        <BigRoad  bigRoadData={roadMap[ERoadType.Big]}/>
         <div className='flex flex-row basis-30% justify-between'>
           <EyeRoad eyeRoadData={roadMap[ERoadType.BigEye]} title={"BigEye"}/>
-          {/* <BigRoad {...roadMap[ERoadType.Big] as IRoadResult<IBigRoadData>}/>
-          <BigRoad {...roadMap[ERoadType.Big] as IRoadResult<IBigRoadData>}/> */}
+          <EyeRoad eyeRoadData={roadMap[ERoadType.SmallEye]} title={"SmallEye"}/>
+          <EyeRoad eyeRoadData={roadMap[ERoadType.Cockroach]} title={"Cockroach"}/>
         </div>
+        <DishRoad dishRoadData={roadMap[ERoadType.Dish]}/>
       </div>
     </div>
   )
