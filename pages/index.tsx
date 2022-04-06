@@ -7,7 +7,7 @@ import DishRoad from '../components/DishRoad'
 import EyeRoad from '../components/EyeRoad'
 import BigRoadIcon from '../components/small/BigRoadIcon'
 import { test, genFakeResult, genFakeBigRoadResult, results } from '../utils/test'
-import { EResultType, ERoadType, IBigRoadData, IRawData, IRoadMap, IRoadResult } from '../utils/types'
+import { EEyeRoadType, EResultType, ERoadType, IBigRoadData, IRawData, IRoadMap, IRoadResult } from '../utils/types'
 
 const Home: NextPage = () => {
   const [roadMap, setRoadMap] = useState<IRoadMap>(results)
@@ -21,9 +21,9 @@ const Home: NextPage = () => {
       <div className='flex flex-col'>
         <BigRoad  bigRoadData={roadMap[ERoadType.Big]}/>
         <div className='flex flex-row basis-30% justify-start'>
-          <EyeRoad eyeRoadData={roadMap[ERoadType.BigEye]} title={"BigEye"}/>
-          <EyeRoad eyeRoadData={roadMap[ERoadType.SmallEye]} title={"SmallEye"}/>
-          <EyeRoad eyeRoadData={roadMap[ERoadType.Cockroach]} title={"Cockroach"}/>
+          <EyeRoad eyeRoadData={roadMap[ERoadType.BigEye]} title={"BigEye"} roadStyle={EEyeRoadType.Big}/>
+          <EyeRoad eyeRoadData={roadMap[ERoadType.SmallEye]} title={"SmallEye"} roadStyle={EEyeRoadType.Small}/>
+          <EyeRoad eyeRoadData={roadMap[ERoadType.Cockroach]} title={"Cockroach"} roadStyle={EEyeRoadType.Cockroach}/>
         </div>
         <DishRoad dishRoadData={roadMap[ERoadType.Dish]}/>
       </div>

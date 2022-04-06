@@ -52,3 +52,12 @@ export interface IBigRoadData {
     isPlayerPair: boolean,
 }
 // #endregion big road type
+
+// #region UI Type
+export enum EEyeRoadType {
+    Big,
+    Small,
+    Cockroach,
+}
+
+// #endregion UI Type
