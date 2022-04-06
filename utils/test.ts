@@ -304,6 +304,25 @@ function updateEyeRoad(bigBoard: Array<Array<IBigRoadData>>, bigData: Array<ICol
 }
 
 // #endregion EyeRoad
+// #region DishRoad
+function updateDishRoad(rawDatas: Array<IRawData>) {
+    const result = results[ERoadType.Dish]
+    const config = configs[ERoadType.Dish]
+    const rowLimit = config.row
+    
+    rawDatas.forEach((data: IRawData, index: number) => {
+        let colIndex = Math.floor(index / rowLimit)
+        let rowIndex = index % rowLimit
+        result.board[colIndex][rowIndex] = data
+        if (rowIndex == 0) {
+            result.data.push({ colDatas: [] })
+        }
+        result.data[result.data.length - 1].colDatas.push(data)
+    })
+}
+
+
+// #endregion DishRoad
 
 
 
@@ -333,7 +352,7 @@ function printResult() {
     printBoard(results[ERoadType.SmallEye].board, results[ERoadType.SmallEye].data, ERoadType.SmallEye)
     printBoard(results[ERoadType.Cockroach].board, results[ERoadType.Cockroach].data, ERoadType.Cockroach)
     
-    // printBoard(results[ERoadType.Dish].board, results[ERoadType.Dish].data, ERoadType.Dish)
+    printBoard(results[ERoadType.Dish].board, results[ERoadType.Dish].data, ERoadType.Dish)
 }
 
 function printBoard (board: Array<Array<any>>, data: any, type: ERoadType) {
@@ -369,6 +388,26 @@ function convertDataToSymbol(data: any, type: ERoadType): string {
             let symbol = data as EResultType == EResultType.Banker ? "R" : "B"
             return symbol
         }
+        case ERoadType.Dish: {
+            let d = data as IRawData
+            let mainSymbol = ""
+            switch (d.resultType) {
+                case EResultType.Banker:
+                    mainSymbol = "R"
+                    break
+                case EResultType.Player:
+                    mainSymbol = "B"
+                    break
+                case EResultType.Draw:
+                    mainSymbol = "D"
+                    break
+            }
+            let symbol = ""
+                // + (data.isBankerPair ? bigRoadSymbol.bankerPair : '')
+                + mainSymbol
+                // + (data.isPlayerPair ? bigRoadSymbol.playerPair : '');
+            return symbol
+        }
     }
     return ""
 }
@@ -383,6 +422,7 @@ export function test() {
     updateBigEyeRoad(results[ERoadType.Big].board, results[ERoadType.Big].data)
     updateSmallEyeRoad(results[ERoadType.Big].board, results[ERoadType.Big].data)
     updateCockroachRoad(results[ERoadType.Big].board, results[ERoadType.Big].data)
+    updateDishRoad(fakeData)
     printResult()
 }
 // #endregion basic 

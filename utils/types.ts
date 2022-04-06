@@ -13,24 +13,17 @@ export interface IRoadConfig {
 }
 
 export interface IRoadMap {
-    [ERoadType.Big]: {
-        board: Array<Array<IBigRoadData>>
-        data: Array<IColDatas<IBigRoadData>>
-    },
-    [ERoadType.BigEye]: {
-        board: Array<Array<EResultType>>
-        data: Array<IColDatas<EResultType>>
-    },
-    [ERoadType.SmallEye]: IRoadResult<any>,
-    [ERoadType.Cockroach]: IRoadResult<any>,
-    [ERoadType.Dish]: IRoadResult<any>,
+    [ERoadType.Big]: IRoadResult<IBigRoadData>,
+    [ERoadType.BigEye]: IRoadResult<EResultType>,
+    [ERoadType.SmallEye]: IRoadResult<EResultType>,
+    [ERoadType.Cockroach]: IRoadResult<EResultType>,
+    [ERoadType.Dish]: IRoadResult<IRawData>,
 }
 
 export interface IRoadResult<T> {
     board: Array<Array<T>>
-    data: Array<T>
+    data: Array<IColDatas<T>>
 }
-
 
 export enum EResultType {
     None = 0, // empty
