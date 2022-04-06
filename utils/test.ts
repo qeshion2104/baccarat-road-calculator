@@ -49,7 +49,7 @@ const results: IRoadMap = {
 
 
 // #region raw data
-function genFakeResult(count: number): Array<IRawData> {
+export function genFakeResult(count: number): Array<IRawData> {
     let arr: Array<IRawData> = []
     for (let i = 0; i < count; i++) {
         arr.push({
@@ -179,6 +179,19 @@ function updateBigRoad(rawDatas: Array<IRawData>) {
     updateBoard<IBigRoadData>(board, bigRowColDatas, config)
     results[ERoadType.Big].data = bigRowColDatas
 }
+
+export function genFakeBigRoadResult(count: number): Array<IBigRoadData> {
+    let arr: Array<IBigRoadData> = []
+    for (let i = 0; i < count; i++) {
+        arr.push({
+            resultType: getRandomInt(1, 2) as EResultType,
+            drawCounter: getRandomInt(0, 2),
+            isBankerPair: getRandomInt(1, 2) == 1,
+            isPlayerPair: getRandomInt(1, 2) == 1,
+        })
+    }
+    return arr
+}
 // #endregion BigRoad
 
 // #region EyeRoad
@@ -201,6 +214,7 @@ function checkPreviousLineEqual(bigData: Array<IColDatas<IBigRoadData>>, colInde
         return bigData[colIndex - previousCounterOne].colDatas.length == bigData[colIndex - previousCounterTwo].colDatas.length
     }
 }
+
 function checkPreviousDotExist(bigData: Array<IColDatas<IBigRoadData>>, colIndex: number, rowIndex: number, previousCount: number) {
     if (colIndex < previousCount) {
         return false
