@@ -99,6 +99,12 @@ function updateBoard<T>(board: Array<Array<T>>, colDataArr: Array<IColDatas<T>>,
                 colIndex++;
             }
 
+            isNotOverLimit = colIndex < colLimit && rowIndex < rowLimit
+            if (!isNotOverLimit) {
+                // over limit pass
+                return
+            }
+
             // update board
             board[colIndex][rowIndex] = data
         })
